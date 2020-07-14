@@ -1,9 +1,9 @@
 import gizeh as gz
 import numpy as np
 import csv
-from itertools import islice
 from collections import OrderedDict
 from scipy import interpolate
+from moviepy.video.VideoClip import VideoClip
 
 v = np.array
 
@@ -67,6 +67,7 @@ def render_keys(keys_down):
 
 keys_down_timeline = OrderedDict()
 get_most_recent_time = None
+last_t_ms = None
 
 print('Building timeline...')
 with open('keylog.txt', newline='') as infile:
@@ -75,7 +76,7 @@ with open('keylog.txt', newline='') as infile:
 
     last_keys_down = None
 
-    for entry in islice(reader, 20):
+    for entry in reader:
         time_ms = int(entry[0])
         keyname = entry[1]
         is_down = True if entry[2] == 'on' else False
@@ -88,7 +89,9 @@ with open('keylog.txt', newline='') as infile:
             current_keys_down.remove(keyname)
 
         keys_down_timeline[time_ms] = current_keys_down
+
         last_keys_down = current_keys_down
+        last_t_ms = time_ms
 
     ts = v(list(keys_down_timeline.keys()))
     get_most_recent_time = interpolate.interp1d(ts, ts, kind='previous')
@@ -97,9 +100,10 @@ def get_keys_down_at(time_ms):
     time = int(get_most_recent_time(time_ms))
     return keys_down_timeline[time]
 
-print('Writing images...')
+def make_frame(t_sec):
+    return render_keys(get_keys_down_at(t_sec*1000)).get_npimage()
 
-for i in range(0,10):
-    time = 100*i
-    filename = f'keys{time}.png'
-    render_keys(get_keys_down_at(time)).write_to_png(filename)
+print('Generating video...')
+
+vc = VideoClip(make_frame, duration=last_t_ms/1000)
+vc.write_videofile('keylog.mp4', fps=24)
