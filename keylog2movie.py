@@ -7,14 +7,14 @@ from moviepy.video.VideoClip import VideoClip
 
 v = np.array
 
-RES = (300, 300)
-PAD = 12
+BORDER = 4
+BORDER_RGB = (0.1,0.1,0.2)
+RES = (300, 200)
 
 # Keep synced with record-moves.py
 names_layout = [
-    ['', 'forward', ''],
+    ['crouch', 'forward', 'jump'],
     ['left', 'backward', 'right'],
-    ['crouch', 'jump'],
 ]
 
 isdown_layout = [
@@ -24,9 +24,8 @@ isdown_layout = [
 ]
 
 chars_layout = [
-    [' ', '↑', ' '],
+    ['C', '↑', 'J'],
     ['←', '↓', '→'],
-    ['crouch', 'jump'],
 ]
 
 def set2layout(keys_down):
@@ -38,12 +37,13 @@ def set2layout(keys_down):
 def render_keys(keys_down):
     isdown_layout = set2layout(keys_down)
 
-    s = gz.Surface(*RES)
+    s = gz.Surface(RES[0]+2*BORDER, RES[1]+2*BORDER)
     #gz.rectangle(xy=(RES[0]/2, RES[1]/2), lx=RES[0], ly=RES[1], fill=(0,1,0)).draw(s) # greenscreen?
+    gz.rectangle(xy=(RES[0]/2+BORDER, RES[1]/2+BORDER), lx=RES[0], ly=RES[1], fill=BORDER_RGB).draw(s)
 
     row_height = RES[1]/len(chars_layout)
 
-    xy = v([0,-row_height/2])
+    xy = v([BORDER, -row_height/2 + BORDER])
 
     for row, downs in zip(chars_layout, isdown_layout):
         xy += v([0, row_height]) # place pen at start pos for row
@@ -55,14 +55,14 @@ def render_keys(keys_down):
             xy += v([col_width/2, 0]) # advance pen
 
             if col != ' ':
-                fill = (0,0,0.8) if is_down else (0.2,0.2,0.4)
-                gz.rectangle(xy=xy, lx=col_width-PAD/2, ly=row_height-PAD/2,
-                             fill=fill, stroke=(1,1,1), stroke_width=1).draw(s)
-                gz.text(col, 'Arial', 40, fill=(1,1,1), xy=xy).draw(s)
+                fill = (0.5,0.5,1) if is_down else (0.2,0.2,0.4)
+                gz.rectangle(xy=xy, lx=col_width, ly=row_height,
+                             fill=fill, stroke=BORDER_RGB, stroke_width=BORDER).draw(s)
+                gz.text(col, 'Arial', 60, fill=(1,1,1), xy=xy).draw(s)
 
             xy += v([col_width/2, 0]) # advance pen
 
-        xy[0] = 0
+        xy[0] = BORDER
 
     return s
 
