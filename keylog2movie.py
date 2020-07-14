@@ -29,14 +29,14 @@ chars_layout = [
     ['crouch', 'jump'],
 ]
 
-def dict2layout(key_states):
+def set2layout(keys_down):
     return [
-      [col if col == '' else key_states[col] for col in row]
+      [col if col == '' else (col in keys_down) for col in row]
       for row in names_layout
     ]
 
-def render_keys(key_states):
-    isdown_layout = dict2layout(key_states)
+def render_keys(keys_down):
+    isdown_layout = set2layout(keys_down)
 
     s = gz.Surface(*RES)
 
@@ -97,11 +97,9 @@ def get_keys_down_at(time_ms):
     time = int(get_most_recent_time(time_ms))
     return keys_down_timeline[time]
 
-render_keys({
-    'forward': True,
-    'backward': False,
-    'left': True,
-    'right': False,
-    'crouch': False,
-    'jump': True,
-}).write_to_png('keys.png')
+print('Writing images...')
+
+for i in range(0,10):
+    time = 100*i
+    filename = f'keys{time}.png'
+    render_keys(get_keys_down_at(time)).write_to_png(filename)
