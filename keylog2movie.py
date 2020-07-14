@@ -1,11 +1,16 @@
 import gizeh as gz
 import numpy as np
+import csv
+from itertools import islice
+from collections import OrderedDict
+from scipy import interpolate
 
 v = np.array
 
 RES = (300, 300)
 PAD = 12
 
+# Keep synced with record-moves.py
 names_layout = [
     ['', 'forward', ''],
     ['left', 'backward', 'right'],
@@ -58,7 +63,39 @@ def render_keys(key_states):
 
         xy[0] = 0
 
-    s.write_to_png('keys.png')
+    return s
+
+keys_down_timeline = OrderedDict()
+get_most_recent_time = None
+
+print('Building timeline...')
+with open('keylog.txt', newline='') as infile:
+    reader = csv.reader(infile, delimiter='\t')
+    next(reader) # skip headings
+
+    last_keys_down = None
+
+    for entry in islice(reader, 20):
+        time_ms = int(entry[0])
+        keyname = entry[1]
+        is_down = True if entry[2] == 'on' else False
+
+        current_keys_down = set() if last_keys_down is None else set(last_keys_down)
+
+        if is_down:
+            current_keys_down.add(keyname)
+        else:
+            current_keys_down.remove(keyname)
+
+        keys_down_timeline[time_ms] = current_keys_down
+        last_keys_down = current_keys_down
+
+    ts = v(list(keys_down_timeline.keys()))
+    get_most_recent_time = interpolate.interp1d(ts, ts, kind='previous')
+
+def get_keys_down_at(time_ms):
+    time = int(get_most_recent_time(time_ms))
+    return keys_down_timeline[time]
 
 render_keys({
     'forward': True,
@@ -67,4 +104,4 @@ render_keys({
     'right': False,
     'crouch': False,
     'jump': True,
-})
+}).write_to_png('keys.png')
