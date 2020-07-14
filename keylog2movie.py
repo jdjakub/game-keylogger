@@ -39,6 +39,7 @@ def render_keys(keys_down):
     isdown_layout = set2layout(keys_down)
 
     s = gz.Surface(*RES)
+    #gz.rectangle(xy=(RES[0]/2, RES[1]/2), lx=RES[0], ly=RES[1], fill=(0,1,0)).draw(s) # greenscreen?
 
     row_height = RES[1]/len(chars_layout)
 
@@ -97,6 +98,8 @@ with open('keylog.txt', newline='') as infile:
     get_most_recent_time = interpolate.interp1d(ts, ts, kind='previous')
 
 def get_keys_down_at(time_ms):
+    if time_ms > last_t_ms:
+        return set()
     time = int(get_most_recent_time(time_ms))
     return keys_down_timeline[time]
 
@@ -105,5 +108,5 @@ def make_frame(t_sec):
 
 print('Generating video...')
 
-vc = VideoClip(make_frame, duration=last_t_ms/1000)
+vc = VideoClip(make_frame, duration=(last_t_ms)/1000+5)
 vc.write_videofile('keylog.mp4', fps=24)

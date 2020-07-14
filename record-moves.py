@@ -40,11 +40,11 @@ def log(button, is_down):
     action = ACTIONS.get(str(button))
     if action is not None and is_down != IS_DOWN[action]: # Not a repeat message
         IS_DOWN[action] = is_down # Update current state
-        print(f"{t_ms()},\t{action},\t{state(is_down)}", file=fout)
+        print(f"{t_ms()}\t{action}\t{state(is_down)}", file=fout)
         fout.flush()
 
 fout = open("keylog.txt", "w")
-print('time_ms,\taction,\tonoff', file=fout)
+print('time_ms\taction\tonoff', file=fout)
 
 with KeyL(
     on_press=lambda key: log(key, True),
