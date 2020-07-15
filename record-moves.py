@@ -2,7 +2,8 @@
 # that it reads Python code!) so RENAME to .txt extension before running!
 # python record-moves.py.txt
 
-# Writes to ./keylog.txt, exit by closing the window (Ctrl-C doesn't work lol)
+# Script writes to ./keylog.txt, exit by closing (Ctrl-C doesn't work, lol)
+# But flush buffers first by pressing M
 
 from pynput.keyboard import Key, Listener as KeyL
 from pynput.mouse import Listener as MouseL
@@ -37,11 +38,15 @@ def state(is_down):
     return "on" if is_down else "off"
 
 def log(button, is_down):
-    action = ACTIONS.get(str(button))
+    name = str(button)
+    action = ACTIONS.get(name)
     if action is not None and is_down != IS_DOWN[action]: # Not a repeat message
         IS_DOWN[action] = is_down # Update current state
         print(f"{t_ms()}\t{action}\t{state(is_down)}", file=fout)
+        #fout.flush()
+    if name == "'m'":
         fout.flush()
+
 
 fout = open("keylog.txt", "w")
 print('time_ms\taction\tonoff', file=fout)

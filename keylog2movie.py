@@ -17,12 +17,6 @@ names_layout = [
     ['left', 'backward', 'right'],
 ]
 
-isdown_layout = [
-    [False,True,False],
-    [True,False,False],
-    [True,True],
-]
-
 chars_layout = [
     ['C', '↑', 'J'],
     ['←', '↓', '→'],
